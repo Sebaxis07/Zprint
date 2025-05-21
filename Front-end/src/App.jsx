@@ -11,6 +11,8 @@ import Cart from './pages/Cart';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import ForgotPassword from './components/auth/ForgotPassword';
+import ResetPassword from './components/auth/ResetPassword';
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
             <Routes>
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgetpass" element={<ForgotPassword />} />
+              <Route path="/resetpass" element={<ResetPassword />} />
               
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />

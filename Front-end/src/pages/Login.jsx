@@ -18,6 +18,9 @@ export default function Login() {
   const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockEndTime, setBlockEndTime] = useState(null);
   
   // Redirigir si ya está autenticado
   if (isAuthenticated) {
@@ -73,40 +76,75 @@ export default function Login() {
     // checkSavedToken();
   }, []);
 
+  // Verificar si el usuario está bloqueado
+  useEffect(() => {
+    const checkBlockStatus = () => {
+      const blockedUntil = localStorage.getItem('loginBlockedUntil');
+      if (blockedUntil) {
+        const blockTime = new Date(blockedUntil);
+        if (blockTime > new Date()) {
+          setIsBlocked(true);
+          setBlockEndTime(blockTime);
+        } else {
+          localStorage.removeItem('loginBlockedUntil');
+          setIsBlocked(false);
+          setLoginAttempts(0);
+        }
+      }
+    };
+
+    checkBlockStatus();
+    
+    // Actualizar contador regresivo
+    const interval = setInterval(() => {
+      if (blockEndTime && new Date() >= blockEndTime) {
+        setIsBlocked(false);
+        setBlockEndTime(null);
+        setLoginAttempts(0);
+        localStorage.removeItem('loginBlockedUntil');
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [blockEndTime]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm() || isBlocked) return;
     
     try {
-      // BACKEND: Enviar credenciales al servidor
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     email: credentials.email,
-      //     password: credentials.password,
-      //     rememberMe: rememberMe
-      //   })
-      // });
-      //
-      // if (!response.ok) {
-      //   const error = await response.json();
-      //   throw new Error(error.message);
-      // }
-      //
-      // const { token, user } = await response.json();
-      // localStorage.setItem('token', token);
-      // if (rememberMe) {
-      //   localStorage.setItem('refreshToken', user.refreshToken);
-      // }
-
       await login(credentials);
+      // Si el login es exitoso, resetear intentos
+      setLoginAttempts(0);
+      localStorage.removeItem('loginBlockedUntil');
     } catch (err) {
+      // Incrementar intentos fallidos
+      const attempts = loginAttempts + 1;
+      setLoginAttempts(attempts);
+      
+      // Bloquear después de 3 intentos
+      if (attempts >= 3) {
+        const blockEndTime = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+        setIsBlocked(true);
+        setBlockEndTime(blockEndTime);
+        localStorage.setItem('loginBlockedUntil', blockEndTime.toISOString());
+      }
+      
       console.error('Error en login:', err);
     }
   };
   
+  // Función para mostrar el tiempo restante de bloqueo
+  const getRemainingTime = () => {
+    if (!blockEndTime) return '';
+    const now = new Date();
+    const diff = blockEndTime - now;
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   // BACKEND: Manejar login con redes sociales
   const handleSocialLogin = async (provider) => {
     // try {
@@ -180,6 +218,19 @@ export default function Login() {
             
             <form onSubmit={handleSubmit}>
               <div className="space-y-6">
+                {isBlocked && (
+                  <div className="mb-6 p-4 bg-red-900/30 text-red-300 rounded-xl border border-red-800/50 animate-shake">
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      <span>
+                        Cuenta bloqueada temporalmente. Intente nuevamente en {getRemainingTime()} minutos
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="group">
                   <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
                     Correo electrónico
@@ -250,7 +301,7 @@ export default function Login() {
                   </div>
                   
                   <div className="text-sm">
-                    <Link to="/forgot-password" className="text-primary-500 hover:text-primary-400 font-medium">
+                    <Link to="/forgetpass" className="text-primary-500 hover:text-primary-400 font-medium">
                       ¿Olvidaste tu contraseña?
                     </Link>
                   </div>
@@ -259,8 +310,8 @@ export default function Login() {
                 <div>
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="relative w-full group"
+                    disabled={loading || isBlocked}
+                    className={`relative w-full group ${isBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary-500 to-blue-500 rounded-xl blur opacity-70 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
                     <div className="relative px-6 py-3 bg-dark-200 rounded-xl leading-none flex items-center justify-center">
@@ -270,7 +321,24 @@ export default function Login() {
                     </div>
                   </button>
                 </div>
+                <div className="mt-4">
+                  <Link to="/register" className="relative w-full group block">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+                    <div className="relative px-6 py-3 bg-dark-200 rounded-xl leading-none flex items-center justify-center border border-white/10">
+                      <span className="text-white font-semibold text-lg">
+                        Crear cuenta nueva
+                      </span>
+                    </div>
+                  </Link>
+                </div>
                 
+                {/* Mostrar intentos restantes */}
+                {loginAttempts > 0 && !isBlocked && (
+                  <p className="text-sm text-red-400 text-center mt-2">
+                    {`Intentos restantes: ${3 - loginAttempts}`}
+                  </p>
+                )}
+
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-dark-400"></div>
