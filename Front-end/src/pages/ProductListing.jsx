@@ -18,7 +18,7 @@ function ProductListing() {
     // Usar fetch para el real api
     setIsLoading(true);
     
-    // TODO: Replace with API call
+    // TODO: remplaza con la llamada al api
     // GET /api/products?category=${initialCategory}
     setTimeout(() => {
       let productsData = [...fakeProducts];
@@ -33,63 +33,140 @@ function ProductListing() {
     }, 500);
   }, [initialCategory]);
   
-  const handleFilterChange = (filters) => {
-    let filteredData = [...products];
+  // BACKEND: Cargar productos y aplicar filtros iniciales
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        // const queryParams = new URLSearchParams({
+        //   category: initialCategory,
+        //   page: searchParams.get('page') || '1',
+        //   limit: '12'
+        // }).toString();
+        
+        // const response = await fetch(`/api/products?${queryParams}`);
+        // if (!response.ok) throw new Error('Error loading products');
+        // const data = await response.json();
+        // 
+        // setProducts(data.products);
+        // setFilteredProducts(data.products);
+        // setTotalPages(data.totalPages);
+
+        // Temporary mock data
+        setTimeout(() => {
+          let productsData = [...fakeProducts];
+          if (initialCategory) {
+            productsData = productsData.filter(product => 
+              product.category === initialCategory
+            );
+          }
+          setProducts(productsData);
+          setFilteredProducts(productsData);
+          setIsLoading(false);
+        }, 500);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Error al cargar los productos');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [initialCategory, searchParams]);
+
+  // BACKEND: Aplicar filtros
+  const handleFilterChange = async (filters) => {
+    try {
+      // setIsLoading(true);
+      // const queryParams = new URLSearchParams({
+      //   category: filters.category.join(','),
+      //   brand: filters.brand.join(','),
+      //   minPrice: filters.price.min,
+      //   maxPrice: filters.price.max,
+      //   onSale: filters.onSale,
+      //   page: '1'
+      // }).toString();
+      
+      // const response = await fetch(`/api/products/filter?${queryParams}`);
+      // if (!response.ok) throw new Error('Error applying filters');
+      // const data = await response.json();
+      // setFilteredProducts(data.products);
+
+      // Temporary filter logic
+      let filteredData = [...products];
     
-    if (filters.category.length > 0) {
-      filteredData = filteredData.filter(product => 
-        filters.category.includes(product.category)
-      );
+      if (filters.category.length > 0) {
+        filteredData = filteredData.filter(product => 
+          filters.category.includes(product.category)
+        );
+      }
+      
+      if (filters.brand.length > 0) {
+        filteredData = filteredData.filter(product => 
+          filters.brand.includes(product.brand.toLowerCase())
+        );
+      }
+      
+      if (filters.price.min) {
+        filteredData = filteredData.filter(product => 
+          product.price >= Number(filters.price.min)
+        );
+      }
+      
+      if (filters.price.max) {
+        filteredData = filteredData.filter(product => 
+          product.price <= Number(filters.price.max)
+        );
+      }
+      
+      if (filters.onSale) {
+        filteredData = filteredData.filter(product => product.discount > 0);
+      }
+      
+      setFilteredProducts(filteredData);
+    } catch (err) {
+      console.error('Error applying filters:', err);
+      setError('Error al aplicar los filtros');
     }
-    
-    if (filters.brand.length > 0) {
-      filteredData = filteredData.filter(product => 
-        filters.brand.includes(product.brand.toLowerCase())
-      );
-    }
-    
-    if (filters.price.min) {
-      filteredData = filteredData.filter(product => 
-        product.price >= Number(filters.price.min)
-      );
-    }
-    
-    if (filters.price.max) {
-      filteredData = filteredData.filter(product => 
-        product.price <= Number(filters.price.max)
-      );
-    }
-    
-    if (filters.onSale) {
-      filteredData = filteredData.filter(product => product.discount > 0);
-    }
-    
-    setFilteredProducts(filteredData);
   };
-  
-  const handleSortChange = (sortOption) => {
-    let sortedProducts = [...filteredProducts];
+
+  // BACKEND: Aplicar ordenamiento
+  const handleSortChange = async (sortOption) => {
+    try {
+      // setIsLoading(true);
+      // const response = await fetch(`/api/products/sort?by=${sortOption}`);
+      // if (!response.ok) throw new Error('Error sorting products');
+      // const data = await response.json();
+      // setFilteredProducts(data.products);
+
+      // Temporary sort logic
+      let sortedProducts = [...filteredProducts];
     
-    switch (sortOption) {
-      case 'price-low':
-        sortedProducts.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        sortedProducts.sort((a, b) => b.price - a.price);
-        break;
-      case 'newest':
-        sortedProducts.sort((a, b) => b.isNew - a.isNew);
-        break;
-      case 'rating':
-        sortedProducts.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'featured':
-      default:
-        sortedProducts.sort((a, b) => b.isFeatured - a.isFeatured);
-        break;
+      switch (sortOption) {
+        case 'price-low':
+          sortedProducts.sort((a, b) => a.price - b.price);
+          break;
+        case 'price-high':
+          sortedProducts.sort((a, b) => b.price - a.price);
+          break;
+        case 'newest':
+          sortedProducts.sort((a, b) => b.isNew - a.isNew);
+          break;
+        case 'rating':
+          sortedProducts.sort((a, b) => b.rating - a.rating);
+          break;
+        case 'featured':
+        default:
+          sortedProducts.sort((a, b) => b.isFeatured - a.isFeatured);
+          break;
+      }
+      
+      setFilteredProducts(sortedProducts);
+    } catch (err) {
+      console.error('Error sorting products:', err);
+      setError('Error al ordenar los productos');
     }
-    
-    setFilteredProducts(sortedProducts);
   };
   
   if (isLoading) {

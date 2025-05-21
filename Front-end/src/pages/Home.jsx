@@ -10,6 +10,8 @@ function Home() {
   
   useEffect(() => {
     setIsLoading(true);
+    // BACKEND: Obtener productos destacados
+    // GET /api/products/featured
     
     setTimeout(() => {
       setProducts(fakeProducts);

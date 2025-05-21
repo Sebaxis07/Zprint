@@ -51,10 +51,8 @@ function ProductSort({ onSortChange }) {
           </option>
         </select>
 
-        {/* Efecto de brillo en el borde */}
         <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary-500/0 via-primary-500/30 to-primary-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
         
-        {/* Sombra decorativa */}
         <div className="absolute inset-0 -z-10 rounded-lg bg-primary-500/5 blur-xl transition-opacity duration-300 opacity-0 group-hover:opacity-100"></div>
       </div>
     </div>
