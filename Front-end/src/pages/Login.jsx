@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import zapatillaSvg from '../assets/icons/zapatilla.svg';
+import { FcGoogle } from 'react-icons/fc';
+import { FaFacebook } from 'react-icons/fa';
 
-function Login() {
+export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, loading, error, isAuthenticated } = useAuth();
@@ -279,15 +281,46 @@ function Login() {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 mt-6">
-                  {["Google", "Facebook"].map((provider) => (
+                  {[
+                    { 
+                      name: 'Google', 
+                      icon: <FcGoogle className="w-6 h-6" />, 
+                      color: 'border-gray-300',
+                      hoverBg: 'from-primary-500/10 to-blue-500/10',
+                      textColor: 'text-white',
+                      textPosition: 'translate-x-2'
+                    },
+                    { 
+                      name: 'Facebook', 
+                      icon: <FaFacebook className="w-6 h-6 text-[#4267B2]" />, 
+                      color: 'border-[#4267B2]',
+                      hoverBg: 'from-[#4267B2]/10 to-[#4267B2]/5',
+                      textColor: 'text-[#4267B2]',
+                      textPosition: 'translate-x-4'
+                    }
+                  ].map((provider) => (
                     <button
-                      key={provider}
-                      className="relative group overflow-hidden rounded-xl bg-dark-300/50 hover:bg-dark-300 transition-all duration-300"
+                      key={provider.name}
+                      onClick={() => handleSocialLogin(provider.name)}
+                      className={`
+                        relative group overflow-hidden rounded-xl 
+                        bg-dark-300/50 hover:bg-dark-300 
+                        border ${provider.color} border-opacity-50 hover:border-opacity-100
+                        transition-all duration-300
+                        flex items-center justify-center
+                        px-6 py-3
+                        min-w-[160px]
+                      `}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div className="relative px-4 py-3 flex items-center justify-center">
-                        <span className="text-white">{provider}</span>
+                      <div className={`absolute inset-0 bg-gradient-to-r ${provider.hoverBg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                      
+                      <div className="flex items-center transition-transform duration-300 transform group-hover:-translate-x-8">
+                        {provider.icon}
                       </div>
+                      
+                      <span className={`absolute transform transition-all duration-300 opacity-0 translate-x-10 group-hover:opacity-100 group-hover:${provider.textPosition} font-medium text-sm ${provider.textColor}`}>
+                        {provider.name}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -360,5 +393,3 @@ function Login() {
     </div>
   );
 }
-
-export default Login;

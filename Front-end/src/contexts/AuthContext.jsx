@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { FcGoogle } from 'react-icons/fc';
+import { FaFacebook } from 'react-icons/fa';
 
 const AuthContext = createContext();
 
@@ -91,8 +93,6 @@ export function AuthProvider({ children }) {
     
     try {
       // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: {
       //     'Content-Type': 'application/json'
       //   },
       //   body: JSON.stringify(userData)
