@@ -1,0 +1,229 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id_user       Int       @id @default(autoincrement())
+  rut           Int?      @unique
+  name          String    @db.VarChar(60)
+  last_name     String    @db.VarChar(60)
+  email         String    @unique @db.VarChar(60)
+  phone         String?   @db.VarChar(20)
+  password_hash String    @db.VarChar(100)
+  date          DateTime?
+  role          role      @default(USER)
+
+  addresses user_address[]
+  carts     cart[]
+  favorites favorite[]
+  reviews   review[]
+  orders    order[]
+
+  @@map("user")
+}
+
+model address {
+  id_address  Int     @id @default(autoincrement())
+  line1       String
+  line2       String?
+  city        String
+  region      String
+  postal_code String
+  country     String
+  is_default  Boolean @default(false)
+
+  users user_address[]
+
+  @@map("address")
+}
+
+model user_address {
+  user_id    Int
+  address_id Int
+
+  user    user    @relation(fields: [user_id], references: [id_user])
+  address address @relation(fields: [address_id], references: [id_address])
+
+  @@id([user_id, address_id])
+  @@map("user_address")
+}
+
+model cart {
+  id_cart    Int      @id @default(autoincrement())
+  user_id    Int
+  created_at DateTime
+  updated_at DateTime
+
+  user  user        @relation(fields: [user_id], references: [id_user])
+  items cart_item[]
+
+  @@map("cart")
+}
+
+model cart_item {
+  id_item       Int   @id @default(autoincrement())
+  cart_id       Int
+  product_id    Int
+  quantity      Int
+  price_at_time Float
+
+  cart    cart    @relation(fields: [cart_id], references: [id_cart])
+  product product @relation(fields: [product_id], references: [id_product])
+
+  @@map("cart_item")
+}
+
+model favorite {
+  id_favorite Int      @id @default(autoincrement())
+  user_id     Int
+  product_id  Int
+  added_at    DateTime
+
+  user    user    @relation(fields: [user_id], references: [id_user])
+  product product @relation(fields: [product_id], references: [id_product])
+
+  @@map("favorite")
+}
+
+model review {
+  id_review  Int      @id @default(autoincrement())
+  user_id    Int
+  product_id Int
+  rating     Int
+  comment    String?
+  created_at DateTime
+
+  user    user    @relation(fields: [user_id], references: [id_user])
+  product product @relation(fields: [product_id], references: [id_product])
+
+  @@map("review")
+}
+
+model order {
+  id_order   Int      @id @default(autoincrement())
+  user_id    Int
+  total      Float
+  status     String
+  created_at DateTime
+
+  user    user         @relation(fields: [user_id], references: [id_user])
+  items   order_item[]
+  payment payment?
+
+  @@map("order")
+}
+
+model order_item {
+  id_order_item Int   @id @default(autoincrement())
+  order_id      Int
+  product_id    Int
+  quantity      Int
+  price_at_time Float
+
+  order   order   @relation(fields: [order_id], references: [id_order])
+  product product @relation(fields: [product_id], references: [id_product])
+
+  @@map("order_item")
+}
+
+model payment {
+  id_payment Int      @id @default(autoincrement())
+  order_id   Int      @unique
+  method     String
+  status     String
+  paid_at    DateTime
+
+  order order @relation(fields: [order_id], references: [id_order])
+
+  @@map("payment")
+}
+
+model product {
+  id_product  Int      @id @default(autoincrement())
+  category_id Int
+  brand_id    Int
+  colour_id   Int
+  size_id     Int
+  name        String
+  description String
+  price       Float
+  is_discount Boolean
+  discount    Float?
+  stars       Float    @default(0)
+  created_at  DateTime @default(now())
+  material    String
+  stock       Int
+
+  category      category       @relation(fields: [category_id], references: [id_category])
+  brand         brand          @relation(fields: [brand_id], references: [id_brand])
+  colour        colour         @relation(fields: [colour_id], references: [id_colour])
+  size          size           @relation(fields: [size_id], references: [id_size])
+  product_image product_image?
+
+  favorites   favorite[]
+  reviews     review[]
+  cart_items  cart_item[]
+  order_items order_item[]
+
+  @@map("product")
+}
+
+model category {
+  id_category Int    @id @default(autoincrement())
+  name        String
+
+  products product[]
+
+  @@map("category")
+}
+
+model brand {
+  id_brand Int    @id @default(autoincrement())
+  name     String
+
+  products product[]
+
+  @@map("brand")
+}
+
+model colour {
+  id_colour Int    @id @default(autoincrement())
+  name      String
+
+  products product[]
+
+  @@map("colour")
+}
+
+model size {
+  id_size Int    @id @default(autoincrement())
+  name    String
+
+  products product[]
+
+  @@map("size")
+}
+
+model product_image {
+  id_product_image Int     @id @default(autoincrement())
+  product_id       Int     @unique
+  image_url        String
+  is_primary       Boolean
+
+  product product @relation(fields: [product_id], references: [id_product])
+
+  @@map("product_image")
+}
+
+enum role {
+  ADMIN
+  USER
+}
