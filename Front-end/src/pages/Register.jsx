@@ -9,7 +9,10 @@ function Register() {
   
   const [formData, setFormData] = useState({
     name: '',
+    last_name: '',
     email: '',
+    phone: '',
+    date: '', 
     password: '',
     confirmPassword: ''
   });
@@ -39,12 +42,24 @@ function Register() {
   const validateForm = async () => {
     const errors = {};
     
-    if (!formData.name.trim()) errors.name = 'El nombre es obligatorio';
+    if (!formData.name.trim()) {
+      errors.name = 'El nombre es obligatorio';
+    }
+    
+    if (!formData.last_name.trim()) {
+      errors.last_name = 'El apellido es obligatorio';
+    }
     
     if (!formData.email.trim()) {
       errors.email = 'El email es obligatorio';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = 'Email inválido';
+    }
+
+    if (!formData.phone.trim()) {
+      errors.phone = 'El teléfono es obligatorio';
+    } else if (!/^\+?[0-9]{8,}$/.test(formData.phone)) {
+      errors.phone = 'Número de teléfono inválido';
     }
     
     if (!formData.password) {
@@ -59,6 +74,17 @@ function Register() {
     
     if (!agreedToTerms) {
       errors.terms = 'Debes aceptar los términos y condiciones';
+    }
+    
+    if (!formData.date) {
+      errors.date = 'La fecha de cumpleaños es obligatoria';
+    } else {
+      const birthDate = new Date(formData.date);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 13) {
+        errors.date = 'Debes tener al menos 13 años para registrarte';
+      }
     }
     
     // BACKEND: Verificar email no registrado
@@ -187,47 +213,117 @@ function Register() {
             
             <form onSubmit={handleSubmit}>
               <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="group">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
+                      Nombre
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        value={formData.name}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 bg-dark-300/50 border border-dark-400 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent transition-all duration-300 group-hover:bg-dark-300/70"
+                        placeholder="Tu nombre"
+                      />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                    {validationErrors.name && (
+                      <p className="mt-1 text-sm text-red-400">{validationErrors.name}</p>
+                    )}
+                  </div>
+
+                  <div className="group">
+                    <label htmlFor="last_name" className="block text-sm font-medium text-gray-300 mb-1">
+                      Apellido
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="last_name"
+                        name="last_name"
+                        type="text"
+                        value={formData.last_name}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 bg-dark-300/50 border border-dark-400 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent transition-all duration-300 group-hover:bg-dark-300/70"
+                        placeholder="Tu apellido"
+                      />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                    {validationErrors.last_name && (
+                      <p className="mt-1 text-sm text-red-400">{validationErrors.last_name}</p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="group">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-                    Nombre completo
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+                    Correo electrónico
                   </label>
                   <div className="relative">
                     <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      value={formData.name}
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
                       onChange={handleChange}
                       className="w-full px-5 py-4 bg-dark-300/50 border border-dark-400 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent transition-all duration-300 group-hover:bg-dark-300/70"
-                      placeholder="Tu nombre completo"
+                      placeholder="tucorreo@ejemplo.com"
                     />
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   </div>
-                  {validationErrors.name && (
-                    <p className="mt-1 text-sm text-red-400">{validationErrors.name}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Correo electrónico</label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-dark-300 border ${
-                      validationErrors.email ? 'border-red-500' : 'border-dark-400'
-                    } rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors`}
-                    placeholder="tucorreo@ejemplo.com"
-                  />
                   {validationErrors.email && (
                     <p className="mt-1 text-sm text-red-400">{validationErrors.email}</p>
                   )}
                 </div>
+
+                <div className="group">
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1">
+                    Teléfono
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full px-5 py-4 bg-dark-300/50 border border-dark-400 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent transition-all duration-300 group-hover:bg-dark-300/70"
+                      placeholder="+56912345678"
+                    />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  </div>
+                  {validationErrors.phone && (
+                    <p className="mt-1 text-sm text-red-400">{validationErrors.phone}</p>
+                  )}
+                </div>
+
+                <div className="group">
+                  <label htmlFor="date" className="block text-sm font-medium text-gray-300 mb-1">
+                    Fecha de cumpleaños
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="date"
+                      name="date"
+                      type="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      max={new Date().toISOString().split('T')[0]} // Prevenir fechas futuras
+                      className="w-full px-5 py-4 bg-dark-300/50 border border-dark-400 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent transition-all duration-300 group-hover:bg-dark-300/70"
+                    />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  </div>
+                  {validationErrors.date && (
+                    <p className="mt-1 text-sm text-red-400">{validationErrors.date}</p>
+                  )}
+                </div>
                 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Contraseña</label>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
+                    Contraseña
+                  </label>
                   <div className="relative">
                     <input
                       id="password"
